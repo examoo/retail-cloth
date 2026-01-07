@@ -34,5 +34,11 @@
         "**/*.php": [
             "vendor/bin/pint"
         ]
+    },
+    "dependencies": {
+        "chart.js": "^4.5.1",
+        "lucide-vue-next": "^0.562.0",
+        "vue-chartjs": "^5.3.3",
+        "vue-router": "^4.6.4"
     }
 }
