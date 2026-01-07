@@ -1,0 +1,14 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+    
+    # Level 5 is a good balance for existing/fresh projects.
+    level: 5
+
+    ignoreErrors:
+        
+    excludePaths:
+        - ./*/*/FileToBeExcluded.php
