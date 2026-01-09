@@ -124,7 +124,7 @@ const newCustomers = [
         <!-- Row 3: Analytics Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <!-- Sales Trend (Line) -->
-            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-lg font-semibold text-gray-900">Sales Analytics</h2>
                     <!-- Select -->
@@ -133,7 +133,7 @@ const newCustomers = [
             </div>
 
              <!-- Category Splits (Doughnut) -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="bg-white p-6 rounded-xl shadow-sm">
                  <h2 class="text-lg font-semibold text-gray-900 mb-6">Sales by Category</h2>
                  <CategoryChart />
             </div>
@@ -141,7 +141,7 @@ const newCustomers = [
         
          <!-- Row 3.5: More Charts -->
          <div class="grid grid-cols-1 gap-8 mb-8">
-              <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div class="bg-white p-6 rounded-xl shadow-sm">
                  <h2 class="text-lg font-semibold text-gray-900 mb-6">Top Selling Variants</h2>
                  <div class="h-64">
                     <TopProductsChart />

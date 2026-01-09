@@ -97,7 +97,7 @@ const deleteFabric = async (fabric) => {
                 <PrimaryButton @click="openCreateModal"><Plus class="w-4 h-4 mr-2" />Add Fabric</PrimaryButton>
             </div>
 
-            <div class="flex gap-4 bg-white p-4 rounded-lg shadow-sm border items-center">
+            <div class="flex gap-4 bg-white p-4 rounded-lg shadow-sm items-center">
                 <div class="relative flex-1 max-w-xs">
                     <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <TextInput v-model="filters.search" placeholder="Search..." class="pl-10 w-full" />

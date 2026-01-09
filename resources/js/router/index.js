@@ -13,6 +13,7 @@ import CategoryIndex from '../Pages/Admin/Categories/Index.vue';
 import BrandIndex from '../Pages/Admin/Brands/Index.vue';
 import AttributeIndex from '../Pages/Admin/Attributes/Index.vue';
 import ProductIndex from '../Pages/Admin/Products/Index.vue';
+import ProductForm from '../Pages/Admin/Products/Form.vue';
 import SizesPage from '../Pages/Admin/Settings/Sizes.vue';
 import ColorsPage from '../Pages/Admin/Settings/Colors.vue';
 import FabricsPage from '../Pages/Admin/Settings/Fabrics.vue';
@@ -69,6 +70,8 @@ const routes = [
 
     // Product Management
     { path: '/app/products', name: 'products.index', component: ProductIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/products/create', name: 'products.create', component: ProductForm, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/products/:id/edit', name: 'products.edit', component: ProductForm, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
     { path: '/app/categories', name: 'categories.index', component: CategoryIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
     { path: '/app/brands', name: 'brands.index', component: BrandIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
     { path: '/app/attributes', name: 'attributes.index', component: AttributeIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },

@@ -156,7 +156,7 @@ const deleteBrand = async (brand) => {
             </div>
 
             <!-- Controls -->
-            <div class="flex flex-col sm:flex-row justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100 items-center">
+            <div class="flex flex-col sm:flex-row justify-between gap-4 bg-white p-4 rounded-lg shadow-sm items-center">
                 <div class="flex items-center gap-6 w-full sm:w-auto">
                     <div class="flex items-center text-sm text-gray-600 whitespace-nowrap">
                         <SelectInput v-model="filters.per_page" class="h-[38px] w-16 !py-1 mr-2 text-center">

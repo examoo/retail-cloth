@@ -239,7 +239,7 @@ const modalTitle = computed(() => modalMode.value === 'create' ? 'Add New User' 
             </div>
 
             <!-- Table Controls & Filters -->
-            <div class="flex flex-col sm:flex-row justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100 items-center">
+            <div class="flex flex-col sm:flex-row justify-between gap-4 bg-white p-4 rounded-lg shadow-sm items-center">
                 
                 <!-- Left: Per Page & Search -->
                 <div class="flex items-center gap-6 w-full sm:w-auto">
