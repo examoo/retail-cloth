@@ -27,7 +27,7 @@ class UserController extends Controller
             'search' => $request->get('search'),
         ];
 
-        $users = $this->userService->getUsers($filters, $request->get('per_page', 15));
+        $users = $this->userService->getUsers($filters, (int) $request->get('per_page', 15));
 
         return response()->json($users);
     }

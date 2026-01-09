@@ -9,8 +9,9 @@ import CustomerRegister from '../Pages/Auth/CustomerRegister.vue';
 import ForgotPassword from '../Pages/Auth/ForgotPassword.vue';
 import ResetPassword from '../Pages/Auth/ResetPassword.vue';
 import UserIndex from '../Pages/Admin/Users/Index.vue';
-import UserCreate from '../Pages/Admin/Users/Create.vue';
-import UserEdit from '../Pages/Admin/Users/Edit.vue';
+import CategoryIndex from '../Pages/Admin/Categories/Index.vue';
+import BrandIndex from '../Pages/Admin/Brands/Index.vue';
+import AttributeIndex from '../Pages/Admin/Attributes/Index.vue';
 
 // Auth state management
 let isAdminAuthenticated = null;
@@ -110,7 +111,6 @@ const routes = [
         meta: { requiresAdminAuth: true },
     },
 
-    // User Management Routes
     {
         path: '/app/users',
         name: 'users.index',
@@ -120,22 +120,33 @@ const routes = [
             requiredRoles: ['super_admin']
         },
     },
+
+    // Product Management Routes
     {
-        path: '/app/users/create',
-        name: 'users.create',
-        component: UserCreate,
+        path: '/app/categories',
+        name: 'categories.index',
+        component: CategoryIndex,
         meta: {
             requiresAdminAuth: true,
-            requiredRoles: ['super_admin']
+            requiredRoles: ['super_admin', 'admin']
         },
     },
     {
-        path: '/app/users/:id/edit',
-        name: 'users.edit',
-        component: UserEdit,
+        path: '/app/brands',
+        name: 'brands.index',
+        component: BrandIndex,
         meta: {
             requiresAdminAuth: true,
-            requiredRoles: ['super_admin']
+            requiredRoles: ['super_admin', 'admin']
+        },
+    },
+    {
+        path: '/app/attributes',
+        name: 'attributes.index',
+        component: AttributeIndex,
+        meta: {
+            requiresAdminAuth: true,
+            requiredRoles: ['super_admin', 'admin']
         },
     },
     // Add more admin routes here - they will all be protected

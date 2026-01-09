@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\AttributeController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +39,21 @@ Route::prefix('api/admin')->group(function () {
 */
 Route::prefix('api/admin')->middleware(['admin.guard', 'role:super_admin,admin'])->group(function () {
     Route::apiResource('users', UserController::class);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Product Management Routes (Admin Only)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('api/admin')->middleware(['admin.guard', 'role:super_admin,admin'])->group(function () {
+    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('brands', BrandController::class);
+    Route::apiResource('attributes', AttributeController::class);
+    
+    // Attribute value management
+    Route::post('attributes/{attribute}/values', [AttributeController::class, 'addValue']);
+    Route::delete('attributes/{attribute}/values/{value}', [AttributeController::class, 'removeValue']);
 });
 
 /*

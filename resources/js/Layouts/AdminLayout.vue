@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import SidebarLink from '../Components/Admin/SidebarLink.vue';
+import SidebarDropdown from '../Components/Admin/SidebarDropdown.vue';
 import { Menu } from 'lucide-vue-next';
 import { userHasPermission } from '../router';
 
@@ -29,9 +30,25 @@ const toggleSidebar = () => {
                     <SidebarLink v-if="userHasPermission('view-dashboard')" to="/app" icon="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" :collapsed="isSidebarCollapsed">
                         Dashboard
                     </SidebarLink>
-                    <SidebarLink v-if="userHasPermission('view-inventory')" to="/app/products" icon="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" :collapsed="isSidebarCollapsed">
-                        Products
-                    </SidebarLink>
+
+                    <!-- Product Management Dropdown -->
+                    <SidebarDropdown
+                        v-if="userHasPermission('view-inventory')"
+                        icon="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        label="Product Management"
+                        :collapsed="isSidebarCollapsed"
+                    >
+                        <SidebarLink to="/app/categories" icon="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" :collapsed="isSidebarCollapsed">
+                            Categories
+                        </SidebarLink>
+                        <SidebarLink to="/app/brands" icon="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" :collapsed="isSidebarCollapsed">
+                            Brands
+                        </SidebarLink>
+                        <SidebarLink to="/app/attributes" icon="M4 6h16M4 12h8m-8 6h16" :collapsed="isSidebarCollapsed">
+                            Attributes
+                        </SidebarLink>
+                    </SidebarDropdown>
+
                     <SidebarLink 
                         v-if="userHasPermission('view-users')"
                         to="/app/users" 

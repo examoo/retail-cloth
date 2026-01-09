@@ -1,22 +1,43 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import AdminLayout from '../../../Layouts/AdminLayout.vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import PrimaryButton from '../../../Components/PrimaryButton.vue';
 import TextInput from '../../../Components/TextInput.vue';
-import { Edit, Trash2, Plus, Search } from 'lucide-vue-next';
+import SelectInput from '../../../Components/SelectInput.vue';
+import SecondaryButton from '../../../Components/SecondaryButton.vue';
+import InputLabel from '../../../Components/InputLabel.vue';
+import Modal from '../../../Components/Modal.vue';
+import { Edit, Trash2, Plus, Search, X } from 'lucide-vue-next';
 
 const router = useRouter();
 
 const users = ref([]);
 const pagination = ref({});
 const isLoading = ref(false);
+const isProcessing = ref(false);
 
 const filters = ref({
     search: '',
     role: '',
+    per_page: 10,
 });
+
+/* Modal State */
+const showModal = ref(false);
+const modalMode = ref('create'); // 'create' or 'edit'
+const editingId = ref(null);
+
+const form = ref({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    role: 'staff', // default
+});
+
+const errors = ref({});
 
 const roles = [
     { value: '', label: 'All Roles' },
@@ -51,6 +72,104 @@ const fetchUsers = async (page = 1) => {
     }
 };
 
+const openCreateModal = () => {
+    modalMode.value = 'create';
+    editingId.value = null;
+    form.value = {
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        role: 'staff',
+    };
+    errors.value = {};
+    showModal.value = true;
+};
+
+const openEditModal = (user) => {
+    modalMode.value = 'edit';
+    editingId.value = user.id;
+    form.value = {
+        name: user.name,
+        email: user.email,
+        password: '', // blank for edit
+        password_confirmation: '',
+        role: user.roles[0]?.name || 'staff',
+    };
+    errors.value = {};
+    showModal.value = true;
+};
+
+const closeModal = () => {
+    showModal.value = false;
+    form.value = {
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        role: 'staff',
+    };
+    errors.value = {};
+};
+
+const submitForm = async () => {
+    isProcessing.value = true;
+    errors.value = {};
+
+    try {
+        const url = modalMode.value === 'create' 
+            ? '/api/admin/users' 
+            : `/api/admin/users/${editingId.value}`;
+        
+        const method = modalMode.value === 'create' ? 'POST' : 'PUT';
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        };
+
+        const response = await fetch(url, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(form.value),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+                timer: 1500,
+                showConfirmButton: false,
+            });
+            closeModal();
+            fetchUsers(pagination.value.current_page); // refresh list
+        } else {
+            if (response.status === 422) {
+                errors.value = data.errors;
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: data.message || 'Something went wrong.',
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+         Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'An unexpected error occurred.',
+        });
+    } finally {
+        isProcessing.value = false;
+    }
+};
+
 const deleteUser = (user) => {
     Swal.fire({
         title: 'Are you sure?',
@@ -77,7 +196,7 @@ const deleteUser = (user) => {
                         'User has been deleted.',
                         'success'
                     );
-                    fetchUsers(pagination.current_page);
+                    fetchUsers(pagination.value.current_page);
                 } else {
                     const data = await response.json();
                     throw new Error(data.message || 'Failed to delete user');
@@ -100,6 +219,8 @@ watch(filters, () => {
 onMounted(() => {
     fetchUsers();
 });
+
+const modalTitle = computed(() => modalMode.value === 'create' ? 'Add New User' : 'Edit User');
 </script>
 
 <template>
@@ -111,33 +232,53 @@ onMounted(() => {
                     <h2 class="text-2xl font-bold tracking-tight text-gray-900">Users</h2>
                     <p class="mt-1 text-sm text-gray-500">Manage system users and their roles.</p>
                 </div>
-                <PrimaryButton @click="router.push('/app/users/create')" class="flex items-center gap-2">
+                <PrimaryButton @click="openCreateModal" class="flex items-center gap-2">
                     <Plus class="w-4 h-4" />
                     Add User
                 </PrimaryButton>
             </div>
 
-            <!-- Filters -->
-            <div class="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-                <div class="flex-1 relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search class="h-4 w-4 text-gray-400" />
+            <!-- Table Controls & Filters -->
+            <div class="flex flex-col sm:flex-row justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100 items-center">
+                
+                <!-- Left: Per Page & Search -->
+                <div class="flex items-center gap-6 w-full sm:w-auto">
+                    <div class="flex items-center text-sm text-gray-600 whitespace-nowrap">
+                        <SelectInput
+                            v-model="filters.per_page"
+                            class="h-[38px] w-16 !py-1 mr-2 text-center"
+                        >
+                            <option :value="10">10</option>
+                            <option :value="25">25</option>
+                            <option :value="50">50</option>
+                            <option :value="100">100</option>
+                        </SelectInput>
+                        <span>entries per page</span>
                     </div>
-                    <TextInput
-                        v-model="filters.search"
-                        placeholder="Search users..."
-                        class="w-full pl-10"
-                    />
+
+                    <div class="relative sm:w-64">
+                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search class="h-4 w-4 text-gray-400" />
+                        </div>
+                        <TextInput
+                            v-model="filters.search"
+                            placeholder="Search users..."
+                            class="w-full pl-10 h-[38px] !py-1"
+                        />
+                    </div>
                 </div>
+
+                <!-- Right: Role Filter -->
                 <div class="w-full sm:w-48">
-                    <select
-                        v-model="filters.role"
-                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full h-[42px]"
+                    <SelectInput
+                         v-model="filters.role"
+                         class="h-[38px] !py-1"
                     >
-                        <option v-for="role in roles" :key="role.value" :value="role.value">
+                        <option value="">All Roles</option>
+                        <option v-for="role in roles.filter(r => r.value)" :key="role.value" :value="role.value">
                             {{ role.label }}
                         </option>
-                    </select>
+                    </SelectInput>
                 </div>
             </div>
 
@@ -215,7 +356,7 @@ onMounted(() => {
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end gap-2">
                                         <button 
-                                            @click="router.push(`/app/users/${user.id}/edit`)"
+                                            @click="openEditModal(user)"
                                             class="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded"
                                             title="Edit"
                                         >
@@ -235,27 +376,30 @@ onMounted(() => {
                     </table>
                 </div>
 
-                <!-- Pagination -->
+                <!-- Footer / Pagination -->
                 <div 
-                    v-if="pagination.last_page > 1"
+                    v-if="pagination.total > 0"
                     class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
                 >
+                    <!-- Mobile View -->
                     <div class="flex-1 flex justify-between sm:hidden">
                         <button 
                             @click="fetchUsers(pagination.current_page - 1)"
                             :disabled="pagination.current_page === 1"
-                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                         >
                             Previous
                         </button>
                         <button 
                             @click="fetchUsers(pagination.current_page + 1)"
                             :disabled="pagination.current_page === pagination.last_page"
-                            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                         >
                             Next
                         </button>
                     </div>
+
+                    <!-- Desktop View -->
                     <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                         <div>
                             <p class="text-sm text-gray-700">
@@ -265,21 +409,19 @@ onMounted(() => {
                                 <span class="font-medium">{{ pagination.to }}</span>
                                 of
                                 <span class="font-medium">{{ pagination.total }}</span>
-                                results
+                                entries
                             </p>
                         </div>
                         <div>
                             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <!-- First / Previous -->
                                 <button
                                     @click="fetchUsers(pagination.current_page - 1)"
                                     :disabled="pagination.current_page === 1"
                                     class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                                 >
                                     <span class="sr-only">Previous</span>
-                                    <!-- Use a simple chevron here manually to save import space or reuse lucide if needed, sticking to text for simple pagination or simple svg -->
-                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
+                                    <span aria-hidden="true">&laquo;</span>
                                 </button>
                                 
                                 <button
@@ -292,15 +434,14 @@ onMounted(() => {
                                     {{ page.label }}
                                 </button>
 
+                                <!-- Next / Last -->
                                 <button
                                     @click="fetchUsers(pagination.current_page + 1)"
                                     :disabled="pagination.current_page === pagination.last_page"
                                     class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                                 >
                                     <span class="sr-only">Next</span>
-                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                    </svg>
+                                    <span aria-hidden="true">&raquo;</span>
                                 </button>
                             </nav>
                         </div>
@@ -308,5 +449,88 @@ onMounted(() => {
                 </div>
             </div>
         </div>
+
+        <!-- Add/Edit User Modal -->
+        <Modal :show="showModal" @close="closeModal">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-900">{{ modalTitle }}</h3>
+                <button @click="closeModal" class="text-gray-400 hover:text-gray-500">
+                    <X class="h-6 w-6" />
+                </button>
+            </div>
+
+            <form @submit.prevent="submitForm" class="p-6 space-y-4">
+                <div>
+                    <InputLabel for="name" value="Name" />
+                    <TextInput
+                        id="name"
+                        type="text"
+                        class="mt-1 block w-full"
+                        v-model="form.name"
+                        required
+                        autofocus
+                    />
+                    <p v-if="errors.name" class="text-sm text-red-600 mt-1">{{ errors.name[0] }}</p>
+                </div>
+
+                <div>
+                    <InputLabel for="email" value="Email" />
+                    <TextInput
+                        id="email"
+                        type="email"
+                        class="mt-1 block w-full"
+                        v-model="form.email"
+                        required
+                    />
+                    <p v-if="errors.email" class="text-sm text-red-600 mt-1">{{ errors.email[0] }}</p>
+                </div>
+
+                <div>
+                    <InputLabel for="role" value="Role" />
+                    <SelectInput
+                        id="role"
+                        v-model="form.role"
+                        class="mt-1 block w-full"
+                    >
+                        <option v-for="role in roles.filter(r => r.value)" :key="role.value" :value="role.value">
+                            {{ role.label }}
+                        </option>
+                    </SelectInput>
+                    <p v-if="errors.role" class="text-sm text-red-600 mt-1">{{ errors.role[0] }}</p>
+                </div>
+
+                <div>
+                    <InputLabel for="password" :value="modalMode === 'create' ? 'Password' : 'New Password (Optional)'" />
+                    <TextInput
+                        id="password"
+                        type="password"
+                        class="mt-1 block w-full"
+                        v-model="form.password"
+                        :required="modalMode === 'create'"
+                    />
+                    <p v-if="errors.password" class="text-sm text-red-600 mt-1">{{ errors.password[0] }}</p>
+                </div>
+
+                <div>
+                    <InputLabel for="password_confirmation" value="Confirm Password" />
+                    <TextInput
+                        id="password_confirmation"
+                        type="password"
+                        class="mt-1 block w-full"
+                        v-model="form.password_confirmation"
+                        :required="modalMode === 'create' || form.password.length > 0"
+                    />
+                </div>
+
+                 <div class="flex items-center justify-end mt-6 gap-3">
+                    <SecondaryButton @click="closeModal">
+                        Cancel
+                    </SecondaryButton>
+                    <PrimaryButton :class="{ 'opacity-25': isProcessing }" :disabled="isProcessing">
+                        {{ modalMode === 'create' ? 'Create User' : 'Update User' }}
+                    </PrimaryButton>
+                </div>
+            </form>
+        </Modal>
     </AdminLayout>
 </template>
