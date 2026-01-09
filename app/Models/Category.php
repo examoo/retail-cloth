@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -19,11 +20,18 @@ class Category extends Model
         'slug',
         'description',
         'parent_id',
+        'gender',
+        'age_group',
+        'image_url',
         'is_active',
+        'sort_order',
+        'meta_title',
+        'meta_description',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'sort_order' => 'integer',
     ];
 
     protected static function booted(): void
@@ -43,5 +51,43 @@ class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'product_categories')
+            ->withTimestamps();
+    }
+
+    /**
+     * Scope for active categories
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for root categories (no parent)
+     */
+    public function scopeRoot($query)
+    {
+        return $query->whereNull('parent_id');
+    }
+
+    /**
+     * Scope for gender
+     */
+    public function scopeForGender($query, string $gender)
+    {
+        return $query->where('gender', $gender);
+    }
+
+    /**
+     * Scope for age group
+     */
+    public function scopeForAgeGroup($query, string $ageGroup)
+    {
+        return $query->where('age_group', $ageGroup);
     }
 }

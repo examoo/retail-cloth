@@ -12,6 +12,13 @@ import UserIndex from '../Pages/Admin/Users/Index.vue';
 import CategoryIndex from '../Pages/Admin/Categories/Index.vue';
 import BrandIndex from '../Pages/Admin/Brands/Index.vue';
 import AttributeIndex from '../Pages/Admin/Attributes/Index.vue';
+import ProductIndex from '../Pages/Admin/Products/Index.vue';
+import SizesPage from '../Pages/Admin/Settings/Sizes.vue';
+import ColorsPage from '../Pages/Admin/Settings/Colors.vue';
+import FabricsPage from '../Pages/Admin/Settings/Fabrics.vue';
+import FitsPage from '../Pages/Admin/Settings/Fits.vue';
+import TaxClassesPage from '../Pages/Admin/Settings/TaxClasses.vue';
+import StoresPage from '../Pages/Admin/Settings/Stores.vue';
 
 // Auth state management
 let isAdminAuthenticated = null;
@@ -21,19 +28,12 @@ const checkAdminAuth = async () => {
     try {
         const response = await fetch('/api/admin/me', {
             credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
+            headers: { Accept: 'application/json' },
         });
         if (response.ok) {
             const data = await response.json();
             isAdminAuthenticated = true;
-            // Merge user data with roles and permissions
-            currentUser = {
-                ...data.user,
-                roles: data.roles || [],
-                permissions: data.permissions || [],
-            };
+            currentUser = { ...data.user, roles: data.roles || [], permissions: data.permissions || [] };
             return true;
         }
         isAdminAuthenticated = false;
@@ -46,163 +46,62 @@ const checkAdminAuth = async () => {
     }
 };
 
-// Check if current user has required role
 const hasRole = (requiredRoles) => {
     if (!currentUser || !currentUser.roles) return false;
-
-    // Normalize requiredRoles to array
     const rolesToCheck = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-
-    // Check if user has ANY of the required roles
     return rolesToCheck.some(role => currentUser.roles.includes(role));
 };
 
-// Check if current user has required permission
 const hasPermission = (permission) => {
     if (!currentUser || !currentUser.permissions) return false;
     return currentUser.permissions.includes(permission);
 };
 
 const routes = [
-    // Public Website Routes
-    {
-        path: '/',
-        name: 'home',
-        component: Home,
-    },
+    { path: '/', name: 'home', component: Home },
+    { path: '/login', name: 'customer.login', component: CustomerLogin },
+    { path: '/register', name: 'customer.register', component: CustomerRegister },
+    { path: '/app/login', name: 'admin.login', component: AdminLogin, meta: { guestOnly: true } },
+    { path: '/app/forgot-password', name: 'admin.forgot-password', component: ForgotPassword, meta: { guestOnly: true } },
+    { path: '/app/reset-password', name: 'admin.reset-password', component: ResetPassword, meta: { guestOnly: true } },
+    { path: '/app', name: 'dashboard', component: Dashboard, meta: { requiresAdminAuth: true } },
+    { path: '/app/users', name: 'users.index', component: UserIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin'] } },
 
-    // Customer Auth Routes
-    {
-        path: '/login',
-        name: 'customer.login',
-        component: CustomerLogin,
-    },
-    {
-        path: '/register',
-        name: 'customer.register',
-        component: CustomerRegister,
-    },
+    // Product Management
+    { path: '/app/products', name: 'products.index', component: ProductIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/categories', name: 'categories.index', component: CategoryIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/brands', name: 'brands.index', component: BrandIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/attributes', name: 'attributes.index', component: AttributeIndex, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
 
-    // Admin Auth Routes
-    {
-        path: '/app/login',
-        name: 'admin.login',
-        component: AdminLogin,
-        meta: { guestOnly: true },
-    },
-    {
-        path: '/app/forgot-password',
-        name: 'admin.forgot-password',
-        component: ForgotPassword,
-        meta: { guestOnly: true },
-    },
-    {
-        path: '/app/reset-password',
-        name: 'admin.reset-password',
-        component: ResetPassword,
-        meta: { guestOnly: true },
-    },
-
-    // Admin Protected Routes
-    {
-        path: '/app',
-        name: 'dashboard',
-        component: Dashboard,
-        meta: { requiresAdminAuth: true },
-    },
-
-    {
-        path: '/app/users',
-        name: 'users.index',
-        component: UserIndex,
-        meta: {
-            requiresAdminAuth: true,
-            requiredRoles: ['super_admin']
-        },
-    },
-
-    // Product Management Routes
-    {
-        path: '/app/categories',
-        name: 'categories.index',
-        component: CategoryIndex,
-        meta: {
-            requiresAdminAuth: true,
-            requiredRoles: ['super_admin', 'admin']
-        },
-    },
-    {
-        path: '/app/brands',
-        name: 'brands.index',
-        component: BrandIndex,
-        meta: {
-            requiresAdminAuth: true,
-            requiredRoles: ['super_admin', 'admin']
-        },
-    },
-    {
-        path: '/app/attributes',
-        name: 'attributes.index',
-        component: AttributeIndex,
-        meta: {
-            requiresAdminAuth: true,
-            requiredRoles: ['super_admin', 'admin']
-        },
-    },
-    // Add more admin routes here - they will all be protected
+    // Settings
+    { path: '/app/settings/sizes', name: 'settings.sizes', component: SizesPage, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/settings/colors', name: 'settings.colors', component: ColorsPage, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/settings/fabrics', name: 'settings.fabrics', component: FabricsPage, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/settings/fits', name: 'settings.fits', component: FitsPage, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/settings/tax-classes', name: 'settings.tax-classes', component: TaxClassesPage, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
+    { path: '/app/settings/stores', name: 'settings.stores', component: StoresPage, meta: { requiresAdminAuth: true, requiredRoles: ['super_admin', 'admin'] } },
 ];
 
-const router = createRouter({
-    history: createWebHistory(),
-    routes,
-});
+const router = createRouter({ history: createWebHistory(), routes });
 
-// Global Navigation Guard for Admin Routes
 router.beforeEach(async (to, from, next) => {
     NProgress.start();
-
-    // Check if route requires admin authentication
     if (to.meta.requiresAdminAuth) {
         const isAuthenticated = await checkAdminAuth();
-
-        if (!isAuthenticated) {
-            // Redirect to admin login with return URL
-            return next({
-                name: 'admin.login',
-                query: { redirect: to.fullPath },
-            });
-        }
-
-        // Check for required roles
-        if (to.meta.requiredRoles && !hasRole(to.meta.requiredRoles)) {
-            // User doesn't have required role, redirect to dashboard with error
-            return next({ name: 'dashboard' });
-        }
+        if (!isAuthenticated) return next({ name: 'admin.login', query: { redirect: to.fullPath } });
+        if (to.meta.requiredRoles && !hasRole(to.meta.requiredRoles)) return next({ name: 'dashboard' });
     }
-
-    // If already logged in admin tries to access guest-only pages, redirect to dashboard
     if (to.meta.guestOnly && to.path.includes('/app')) {
         const isAuthenticated = await checkAdminAuth();
-
-        if (isAuthenticated) {
-            return next({ name: 'dashboard' });
-        }
+        if (isAuthenticated) return next({ name: 'dashboard' });
     }
-
     next();
 });
 
-router.afterEach(() => {
-    NProgress.done();
-});
+router.afterEach(() => { NProgress.done(); });
 
-// Export helper for components to access current user
 export const getCurrentUser = () => currentUser;
 export const getUserRole = () => currentUser?.role;
 export const userHasRole = hasRole;
 export const userHasPermission = hasPermission;
-
 export default router;
-
-
-

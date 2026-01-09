@@ -51,6 +51,54 @@ class RolePermissionSeeder extends Seeder
             'view-inventory',
             'manage-inventory',
 
+            // Products
+            'view-products',
+            'create-products',
+            'edit-products',
+            'delete-products',
+
+            // Product Variants
+            'view-variants',
+            'create-variants',
+            'edit-variants',
+            'delete-variants',
+
+            // Sizes
+            'view-sizes',
+            'create-sizes',
+            'edit-sizes',
+            'delete-sizes',
+
+            // Colors
+            'view-colors',
+            'create-colors',
+            'edit-colors',
+            'delete-colors',
+
+            // Fabrics
+            'view-fabrics',
+            'create-fabrics',
+            'edit-fabrics',
+            'delete-fabrics',
+
+            // Fits
+            'view-fits',
+            'create-fits',
+            'edit-fits',
+            'delete-fits',
+
+            // Tax Classes
+            'view-tax-classes',
+            'create-tax-classes',
+            'edit-tax-classes',
+            'delete-tax-classes',
+
+            // Stores
+            'view-stores',
+            'create-stores',
+            'edit-stores',
+            'delete-stores',
+
             // Reports
             'view-reports',
 
@@ -76,6 +124,14 @@ class RolePermissionSeeder extends Seeder
             'view-orders', 'create-orders', 'edit-orders', 'delete-orders',
             'view-measurements', 'create-measurements', 'edit-measurements',
             'view-inventory', 'manage-inventory',
+            'view-products', 'create-products', 'edit-products', 'delete-products',
+            'view-variants', 'create-variants', 'edit-variants', 'delete-variants',
+            'view-sizes', 'create-sizes', 'edit-sizes', 'delete-sizes',
+            'view-colors', 'create-colors', 'edit-colors', 'delete-colors',
+            'view-fabrics', 'create-fabrics', 'edit-fabrics', 'delete-fabrics',
+            'view-fits', 'create-fits', 'edit-fits', 'delete-fits',
+            'view-tax-classes', 'create-tax-classes', 'edit-tax-classes', 'delete-tax-classes',
+            'view-stores', 'create-stores', 'edit-stores', 'delete-stores',
             'view-reports',
             'manage-settings',
         ]);
@@ -88,6 +144,9 @@ class RolePermissionSeeder extends Seeder
             'view-orders', 'create-orders', 'edit-orders',
             'view-measurements', 'create-measurements', 'edit-measurements',
             'view-inventory',
+            'view-products',
+            'view-variants',
+            'view-sizes', 'view-colors', 'view-fabrics', 'view-fits',
         ]);
 
         // Tailor - gets limited permissions
