@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import NProgress from 'nprogress';
+import '../../css/nprogress.css';
 import Home from '../Pages/Website/Home.vue';
 import Dashboard from '../Pages/Admin/Dashboard.vue';
 import AdminLogin from '../Pages/Auth/AdminLogin.vue';
@@ -6,6 +8,9 @@ import CustomerLogin from '../Pages/Auth/CustomerLogin.vue';
 import CustomerRegister from '../Pages/Auth/CustomerRegister.vue';
 import ForgotPassword from '../Pages/Auth/ForgotPassword.vue';
 import ResetPassword from '../Pages/Auth/ResetPassword.vue';
+import UserIndex from '../Pages/Admin/Users/Index.vue';
+import UserCreate from '../Pages/Admin/Users/Create.vue';
+import UserEdit from '../Pages/Admin/Users/Edit.vue';
 
 // Auth state management
 let isAdminAuthenticated = null;
@@ -22,7 +27,12 @@ const checkAdminAuth = async () => {
         if (response.ok) {
             const data = await response.json();
             isAdminAuthenticated = true;
-            currentUser = data.user;
+            // Merge user data with roles and permissions
+            currentUser = {
+                ...data.user,
+                roles: data.roles || [],
+                permissions: data.permissions || [],
+            };
             return true;
         }
         isAdminAuthenticated = false;
@@ -36,10 +46,20 @@ const checkAdminAuth = async () => {
 };
 
 // Check if current user has required role
-const hasRole = (roles) => {
-    if (!currentUser || !currentUser.role) return false;
-    if (typeof roles === 'string') return currentUser.role === roles;
-    return roles.includes(currentUser.role);
+const hasRole = (requiredRoles) => {
+    if (!currentUser || !currentUser.roles) return false;
+
+    // Normalize requiredRoles to array
+    const rolesToCheck = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+
+    // Check if user has ANY of the required roles
+    return rolesToCheck.some(role => currentUser.roles.includes(role));
+};
+
+// Check if current user has required permission
+const hasPermission = (permission) => {
+    if (!currentUser || !currentUser.permissions) return false;
+    return currentUser.permissions.includes(permission);
 };
 
 const routes = [
@@ -89,6 +109,35 @@ const routes = [
         component: Dashboard,
         meta: { requiresAdminAuth: true },
     },
+
+    // User Management Routes
+    {
+        path: '/app/users',
+        name: 'users.index',
+        component: UserIndex,
+        meta: {
+            requiresAdminAuth: true,
+            requiredRoles: ['super_admin']
+        },
+    },
+    {
+        path: '/app/users/create',
+        name: 'users.create',
+        component: UserCreate,
+        meta: {
+            requiresAdminAuth: true,
+            requiredRoles: ['super_admin']
+        },
+    },
+    {
+        path: '/app/users/:id/edit',
+        name: 'users.edit',
+        component: UserEdit,
+        meta: {
+            requiresAdminAuth: true,
+            requiredRoles: ['super_admin']
+        },
+    },
     // Add more admin routes here - they will all be protected
 ];
 
@@ -99,6 +148,8 @@ const router = createRouter({
 
 // Global Navigation Guard for Admin Routes
 router.beforeEach(async (to, from, next) => {
+    NProgress.start();
+
     // Check if route requires admin authentication
     if (to.meta.requiresAdminAuth) {
         const isAuthenticated = await checkAdminAuth();
@@ -130,10 +181,15 @@ router.beforeEach(async (to, from, next) => {
     next();
 });
 
+router.afterEach(() => {
+    NProgress.done();
+});
+
 // Export helper for components to access current user
 export const getCurrentUser = () => currentUser;
 export const getUserRole = () => currentUser?.role;
 export const userHasRole = hasRole;
+export const userHasPermission = hasPermission;
 
 export default router;
 

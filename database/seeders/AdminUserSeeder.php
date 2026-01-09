@@ -15,13 +15,22 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
+        // Create default super admin user if it doesn't exist
+        $user = User::firstOrCreate(
             ['email' => 'admin@gmail.com'],
             [
-                'name' => 'Admin',
-                'email' => 'admin@gmail.com',
+                'name' => 'Super Admin',
                 'password' => Hash::make('12345678'),
+                'email_verified_at' => now(),
             ]
         );
+
+        // Assign super_admin role using Spatie
+        $user->syncRoles([User::ROLE_SUPER_ADMIN]);
+
+        $this->command->info('Admin user created successfully!');
+        $this->command->info('Email: admin@gmail.com');
+        $this->command->info('Password: 12345678');
+        $this->command->warn('Please change this password after first login!');
     }
 }
