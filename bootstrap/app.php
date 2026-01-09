@@ -13,7 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'admin.guard' => \App\Http\Middleware\AdminGuard::class,
+            'customer.guard' => \App\Http\Middleware\CustomerGuard::class,
+            'role' => \App\Http\Middleware\HasRole::class,
+            'permission' => \App\Http\Middleware\HasPermission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
